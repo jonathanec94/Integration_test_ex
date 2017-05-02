@@ -21,7 +21,7 @@ public class DbExercise {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         
         IDBConnector dbCon = new DBConnector();
         Connection con = dbCon.getConnection();
@@ -40,9 +40,17 @@ public class DbExercise {
             Logger.getLogger(DbExercise.class.getName()).log(Level.SEVERE, null, ex);
         }
        
+    }*/
+    
+    private IDBConnector dbCon;
+    private Connection con;
+    
+    public DbExercise(IDBConnector dbCon){
+        this.dbCon = dbCon;
+        this.con = dbCon.getConnection();
     }
 
-    public ResultSet ex1(Connection con) throws SQLException {
+    public ResultSet ex1() throws SQLException {
         String SQLString = "SELECT * FROM DEPARTMENT";
 
         PreparedStatement statement = null;

@@ -5,65 +5,92 @@
  */
 package dbexercise;
 
+import config.IDBConnector;
+import config.MockDBConnector;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.hamcrest.CoreMatchers;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-/**
- *
- * @author nikolai
- */
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import static org.mockito.Mockito.when;
+import org.mockito.runners.MockitoJUnitRunner;
+
+@RunWith(MockitoJUnitRunner.class)
 public class DbExerciseTest {
+
+    IDBConnector con;
     
-    public DbExerciseTest() {
-    }
+    @Mock 
+    DbExercise dbExercise;
     
-    @BeforeClass
-    public static void setUpClass() {
-    }
+    DbExercise newDbExercise;
     
-    @AfterClass
-    public static void tearDownClass() {
-    }
     
+    ResultSet resultSetMock = Mockito.mock(ResultSet.class);
+
     @Before
-    public void setUp() {
+    public void setUp() throws FileNotFoundException, IOException, SQLException {
+        newDbExercise = new DbExercise(new MockDBConnector());
+        
+        con = new MockDBConnector();
+
+        ScriptRunner runner = new ScriptRunner(con.getConnection(), false, false);
+        String file = "C:\\Users\\nikolai\\Documents\\NetBeansProjects\\Testing_Db_mock\\src\\test\\java\\dbexercise\\createDrop.sql";
+        runner.runScript(new BufferedReader(new FileReader(file)));
+
+        String insertFile = "C:\\Users\\nikolai\\Documents\\NetBeansProjects\\Testing_Db_mock\\src\\test\\java\\dbexercise\\insertData.sql";
+        runner.runScript(new BufferedReader(new FileReader(insertFile)));
     }
+
     
     @After
-    public void tearDown() {
+    public void afterClass(){
+        con.closeConnection();
     }
-
+            
+    
     /**
      * Test of main method, of class DbExercise.
      */
     @Test
-    public void testMain() {
-        System.out.println("main");
-        String[] args = null;
-        DbExercise.main(args);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of ex1 method, of class DbExercise.
-     */
-    @Test
-    public void testEx1() throws Exception {
-        System.out.println("ex1");
-        Connection con = null;
-        DbExercise instance = new DbExercise();
-        ResultSet expResult = null;
-        ResultSet result = instance.ex1(con);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testMain() throws SQLException {
+        when(dbExercise.ex1()).thenReturn(resultSetMock);
+        when(resultSetMock.getString(1)).thenReturn("aa");
+        
+        String testDbEx1 = dbExercise.ex1().getString(1);
+        assertThat(testDbEx1, is("aa"));        
     }
     
+    @Test 
+    public void testConnection(){
+        assertThat(con.getConnection(), is(not(CoreMatchers.nullValue())) );
+    }
+    
+    @Test
+    public void testMockDataFromDb() throws SQLException{
+        ResultSet resultSet = newDbExercise.ex1();
+        resultSet.next();
+        String str = resultSet.getString(1);
+        System.out.println(str);
+        assertThat(str, is("Biology"));
+    }
+    
+    
+    
+
 }
